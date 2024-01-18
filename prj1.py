@@ -8,11 +8,21 @@ from PySide6.QtWidgets import (
     QLabel,
     QTableWidget,
     QTableWidgetItem,
-    QHeaderView
+    QHeaderView,
+    QLineEdit,
+    QGridLayout
 )
 
-from PySide6.QtCore import Slot, QTimer, QDateTime, Qt
+from PySide6.QtCore import (
+    Slot, QTimer, QDateTime, Qt
+)
+
+from PySide6.QtGui import QDoubleValidator
+
+from typing import Tuple
 import pseudoSensor
+
+# import sqlite3
 
 
 class Prj1(QWidget):
@@ -24,9 +34,10 @@ class Prj1(QWidget):
 
         self.single_read = SingleReadWidget(self.sensor)
         self.readings_table = ReadingsTableWidget(self.sensor)
-
+        self.alarms = AlarmWidget()
         self.layout = QVBoxLayout(self)
         self.layout.addWidget(self.single_read)
+        self.layout.addWidget(self.alarms)
         self.layout.addWidget(self.readings_table)
         self.resize(800, 800)
 
@@ -34,9 +45,11 @@ class Prj1(QWidget):
 class SingleReadWidget(QWidget):
     def __init__(self, ps: pseudoSensor.PseudoSensor):
         super().__init__()
+        self.hum = 0
+        self.temp = 0
         self.sensor = ps
         self.read_btn = QPushButton("Single Humidity/Temp Reading")
-        self.read_btn.clicked.connect(self.get_humidity_temp_reading)
+        self.read_btn.clicked.connect(self.gen_humidity_temp_reading)
 
         # Single Read Humidity and Temp Readings
         self.humidity_label = QLabel("20")
@@ -57,10 +70,13 @@ class SingleReadWidget(QWidget):
         self.layout.addLayout(self.temp_layout)
 
     @Slot()
-    def get_humidity_temp_reading(self):
-        hum, temp = self.sensor.generate_values()
-        self.humidity_label.setText(f'{hum:.2f}')
-        self.temp_label.setText(f'{temp:.2f}')
+    def gen_humidity_temp_reading(self) -> None:
+        self.hum, self.temp = self.sensor.generate_values()
+        self.humidity_label.setText(f'{self.hum:.2f}')
+        self.temp_label.setText(f'{self.temp:.2f}')
+
+    def get_reading(self) -> Tuple[float, float]:
+        return self.hum, self.temp
 
 
 class ReadingsTableWidget(QWidget):
@@ -120,6 +136,41 @@ class ReadingsTable(QTableWidget):
 
     def end_timer(self):
         self.readings_timer.stop()
+
+
+class AlarmWidget(QWidget):
+    def __init__(self):
+        super().__init__()
+
+        self.temp_alarm = 60  # Celcius
+        self.hum_alarm = 80  # Percent
+
+        self.layout = QHBoxLayout(self)
+
+        self.temp_layout = QGridLayout()
+        self.temp_input = QLineEdit()
+        self.temp_input.setValidator(QDoubleValidator(-20.0, 100.0, 2))
+        self.temp_input.setPlaceholderText(f'{self.temp_alarm}')
+        self.temp_label = QLabel("degC")
+        self.temp_alarm = QLabel("")
+
+        self.temp_layout.addWidget(self.temp_input, 0, 0)
+        self.temp_layout.addWidget(self.temp_label, 0, 1)
+        self.temp_layout.addWidget(self.temp_alarm, 1, 0, 1, 2)
+
+        self.hum_layout = QGridLayout()
+        self.hum_input = QLineEdit()
+        self.hum_input.setValidator(QDoubleValidator(0.0, 100.0, 2))
+        self.hum_input.setPlaceholderText(f'{self.hum_alarm}')
+        self.hum_label = QLabel("%")
+        self.hum_alarm = QLabel("")
+
+        self.hum_layout.addWidget(self.hum_input, 0, 0)
+        self.hum_layout.addWidget(self.hum_label, 0, 1)
+        self.hum_layout.addWidget(self.hum_alarm, 1, 0, 1, 2)
+
+        self.layout.addLayout(self.temp_layout)
+        self.layout.addLayout(self.hum_layout)
 
 
 def main():
