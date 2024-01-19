@@ -24,6 +24,12 @@ import pseudoSensor
 
 # import sqlite3
 
+MIN_HUM = 0  # %hum
+MAX_HUM = 100  # %hum
+
+MIN_TEMP = -20  # degC
+MAX_TEMP = 120  # degC
+
 
 class Prj1(QWidget):
     def __init__(self):
@@ -31,15 +37,45 @@ class Prj1(QWidget):
         self.sensor = pseudoSensor.PseudoSensor()
 
         self.setWindowTitle("Prj1")
+        self.latest_temp = 0
+        self.latest_hum = 0
 
-        self.single_read = SingleReadWidget(self.sensor)
-        self.readings_table = ReadingsTableWidget(self.sensor)
         self.alarms = AlarmWidget()
+        self.single_read = SingleReadWidget(self.sensor)
+
+        self.single_read.read_btn.clicked.connect(self.get_from_single_read)
+        # self.single_read.read_btn.clicked.connect(
+        #     lambda: self.alarms.alarm_temp(self.latest_temp))
+        # self.single_read.read_btn.clicked.connect(
+        #     lambda: self.alarms.alarm_hum(self.latest_hum))
+
+        self.readings_table = ReadingsTableWidget(self.sensor)
+        self.readings_table.readings_table.readings_timer.timeout.connect(
+            self.get_from_table)
+
         self.layout = QVBoxLayout(self)
         self.layout.addWidget(self.single_read)
         self.layout.addWidget(self.alarms)
         self.layout.addWidget(self.readings_table)
         self.resize(800, 800)
+
+    @Slot()
+    def get_from_single_read(self):
+        self.latest_temp = self.single_read.temp
+        self.latest_hum = self.single_read.hum
+        self.alarms.alarm_hum(self.latest_hum)
+        self.alarms.alarm_temp(self.latest_hum)
+
+    @Slot()
+    def get_from_table(self):
+        curr_row = self.readings_table.readings_table.timer_count-1
+        self.latest_temp = self.readings_table\
+            .readings_table.readings[curr_row][1]
+        self.latest_hum = self.readings_table\
+            .readings_table.readings[curr_row][0]
+
+        self.alarms.alarm_hum(self.latest_hum)
+        self.alarms.alarm_temp(self.latest_hum)
 
 
 class SingleReadWidget(QWidget):
@@ -98,6 +134,7 @@ class ReadingsTable(QTableWidget):
         super().__init__()
 
         self.num_read = 10
+        self.readings = [(0, 0, "")]*self.num_read
         self.setRowCount(self.num_read)
         self.setColumnCount(3)
         self.setHorizontalHeaderLabels(
@@ -125,6 +162,7 @@ class ReadingsTable(QTableWidget):
         item_time = QTableWidgetItem(formatted_time)
 
         self.setItem(self.timer_count, 2, item_time)
+        self.readings[self.timer_count] = (humidity, temp, formatted_time)
         self.timer_count = self.timer_count + 1
 
         if self.timer_count >= self.num_read:
@@ -145,32 +183,56 @@ class AlarmWidget(QWidget):
         self.temp_alarm = 60  # Celcius
         self.hum_alarm = 80  # Percent
 
-        self.layout = QHBoxLayout(self)
+        self.layout = QVBoxLayout(self)
 
-        self.temp_layout = QGridLayout()
+        self.grid = QGridLayout()
         self.temp_input = QLineEdit()
-        self.temp_input.setValidator(QDoubleValidator(-20.0, 100.0, 2))
+        self.temp_input.setValidator(QDoubleValidator(MIN_TEMP, MAX_TEMP, 2))
         self.temp_input.setPlaceholderText(f'{self.temp_alarm}')
         self.temp_label = QLabel("degC")
-        self.temp_alarm = QLabel("")
+        self.temp_alarm_box = QLabel("")
 
-        self.temp_layout.addWidget(self.temp_input, 0, 0)
-        self.temp_layout.addWidget(self.temp_label, 0, 1)
-        self.temp_layout.addWidget(self.temp_alarm, 1, 0, 1, 2)
+        self.grid.addWidget(self.temp_input, 0, 0)
+        self.grid.addWidget(self.temp_label, 0, 1)
+        self.grid.addWidget(self.temp_alarm_box, 1, 0, 1, 2)
 
-        self.hum_layout = QGridLayout()
         self.hum_input = QLineEdit()
-        self.hum_input.setValidator(QDoubleValidator(0.0, 100.0, 2))
+        self.hum_input.setValidator(QDoubleValidator(MIN_HUM, MAX_HUM, 2))
         self.hum_input.setPlaceholderText(f'{self.hum_alarm}')
+        self.hum_input.textEdited.connect(self.update_hum_alarm)
         self.hum_label = QLabel("%")
-        self.hum_alarm = QLabel("")
+        self.hum_alarm_box = QLabel("")
 
-        self.hum_layout.addWidget(self.hum_input, 0, 0)
-        self.hum_layout.addWidget(self.hum_label, 0, 1)
-        self.hum_layout.addWidget(self.hum_alarm, 1, 0, 1, 2)
+        self.grid.addWidget(self.hum_input, 0, 2)
+        self.grid.addWidget(self.hum_label, 0, 3)
+        self.grid.addWidget(self.hum_alarm_box, 1, 2, 1, 2)
 
-        self.layout.addLayout(self.temp_layout)
-        self.layout.addLayout(self.hum_layout)
+        self.layout.addWidget(QLabel("Alarm Settings"))
+        self.layout.addLayout(self.grid)
+
+    @Slot()
+    def alarm_temp(self, temp_val):
+        if temp_val > self.temp_alarm:
+            self.temp_alarm_box.setStyleSheet("""
+            background-color: red;
+            """)
+
+    @Slot()
+    def alarm_hum(self, hum_val):
+        if hum_val > self.hum_alarm:
+            self.hum_alarm_box.setStyleSheet("""
+            background-color: red;
+            """)
+
+    @Slot()
+    def update_temp_alarm(self):
+        val = float(self.temp_input.text())
+        self.temp_alarm = max(MIN_TEMP, min(val, MAX_TEMP))
+
+    @Slot()
+    def update_hum_alarm(self):
+        val = float(self.hum_input.text())
+        self.hum_alarm = max(MIN_HUM, min(val, MAX_HUM))
 
 
 def main():
