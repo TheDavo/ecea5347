@@ -20,9 +20,10 @@ from PySide6.QtCore import (
 )
 
 from PySide6.QtGui import QDoubleValidator
-from typing import Tuple
 
+from typing import Tuple
 import pseudoSensor
+from db import PseudoSensorDb
 
 MIN_HUM = 0  # %hum
 MAX_HUM = 100  # %hum
@@ -36,22 +37,29 @@ class Prj1(QWidget):
         super().__init__()
         self.sensor = pseudoSensor.PseudoSensor()
 
+        # Iniialize the database
+        self.db = PseudoSensorDb()
+        self.db.create_connection()
+        self.db.create_sensor_table()
+
         self.setWindowTitle("Prj1")
         self.latest_temp = 0
         self.latest_hum = 0
+        self.latest_dt = ""
 
         self.alarms = AlarmWidget()
         self.single_read = SingleReadWidget(self.sensor)
         self.single_read.read_btn.clicked.connect(self.get_from_single_read)
         self.single_read.read_btn.clicked.connect(self.update_alarm)
+        self.single_read.read_btn.clicked.connect(self.insert_into_db)
 
         self.readings_table = ReadingsTableWidget(self.sensor)
         self.readings_table.timer.timeout.connect(
             self.get_from_table)
         self.readings_table.timer.timeout.connect(self.update_alarm)
-
+        self.readings_table.timer.timeout.connect(self.insert_into_db)
         self.close_btn = QPushButton("Close Window")
-        self.close_btn.clicked.connect(self.close)
+        self.close_btn.clicked.connect(self.my_close)
 
         self.layout = QVBoxLayout(self)
         self.layout.addWidget(self.single_read)
@@ -62,21 +70,41 @@ class Prj1(QWidget):
 
     @Slot()
     def get_from_single_read(self):
-        self.latest_temp = self.single_read.temp
-        self.latest_hum = self.single_read.hum
+        self.latest_temp, self.latest_hum, self.latest_dt =\
+            self.single_read.get_reading()
 
     @Slot()
     def get_from_table(self):
         curr_row = self.readings_table.timer_count-1
-        self.latest_temp = self.readings_table\
-            .table.readings[curr_row][1]
         self.latest_hum = self.readings_table\
-            .table.readings[curr_row][0]
+            .readings[curr_row][0]
+        self.latest_temp = self.readings_table\
+            .readings[curr_row][1]
+        self.latest_dt = self.readings_table\
+            .readings[curr_row][2]
 
     @Slot()
     def update_alarm(self):
         self.alarms.alarm_hum(self.latest_hum)
         self.alarms.alarm_temp(self.latest_hum)
+
+    @Slot()
+    def insert_into_db(self):
+        data = (self.latest_temp, self.latest_hum, self.latest_dt)
+        self.db.insert_data(data)
+
+    @Slot()
+    def my_close(self):
+        if self.db.conn:
+            self.db.close_db()
+
+        self.close()
+
+    def closeEvent(self, event):
+        if self.db.conn:
+            self.db.close_db()
+
+        event.accept()
 
 
 class SingleReadWidget(QWidget):
@@ -89,6 +117,7 @@ class SingleReadWidget(QWidget):
         super().__init__()
         self.hum = 0
         self.temp = 0
+        self.dt = ""
         self.sensor = ps
         self.read_btn = QPushButton("Single Humidity/Temp Reading")
         self.read_btn.clicked.connect(self.gen_humidity_temp_reading)
@@ -114,11 +143,13 @@ class SingleReadWidget(QWidget):
     @Slot()
     def gen_humidity_temp_reading(self) -> None:
         self.hum, self.temp = self.sensor.generate_values()
+        current_time = QDateTime.currentDateTime()
+        self.dt = current_time.toString('yyyy-MM-dd hh:mm:ss dddd')
         self.humidity_label.setText(f'{self.hum:.2f}')
         self.temp_label.setText(f'{self.temp:.2f}')
 
-    def get_reading(self) -> Tuple[float, float]:
-        return self.hum, self.temp
+    def get_reading(self) -> Tuple[float, float, str]:
+        return self.hum, self.temp, self.dt
 
 
 class ReadingsTableWidget(QWidget):
@@ -240,6 +271,7 @@ class AlarmWidget(QWidget):
         self.hum_alarm_box = QLabel("")
         self.clear_hum_alarm_btn = QPushButton("Clear Humidity Alarm")
         self.clear_hum_alarm_btn.clicked.connect(self.clear_hum_alarm)
+        self.clear_hum_alarm_btn.setEnabled(False)
         self.grid.addWidget(self.clear_hum_alarm_btn, 2, 2, 1, 2)
 
         self.grid.addWidget(self.hum_input, 0, 2)
