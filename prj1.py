@@ -43,10 +43,12 @@ class Prj1(QWidget):
         self.alarms = AlarmWidget()
         self.single_read = SingleReadWidget(self.sensor)
         self.single_read.read_btn.clicked.connect(self.get_from_single_read)
+        self.single_read.read_btn.clicked.connect(self.update_alarm)
 
         self.readings_table = ReadingsTableWidget(self.sensor)
         self.readings_table.timer.timeout.connect(
             self.get_from_table)
+        self.readings_table.timer.timeout.connect(self.update_alarm)
 
         self.close_btn = QPushButton("Close Window")
         self.close_btn.clicked.connect(self.close)
@@ -62,8 +64,6 @@ class Prj1(QWidget):
     def get_from_single_read(self):
         self.latest_temp = self.single_read.temp
         self.latest_hum = self.single_read.hum
-        self.alarms.alarm_hum(self.latest_hum)
-        self.alarms.alarm_temp(self.latest_hum)
 
     @Slot()
     def get_from_table(self):
@@ -73,14 +73,16 @@ class Prj1(QWidget):
         self.latest_hum = self.readings_table\
             .table.readings[curr_row][0]
 
+    @Slot()
+    def update_alarm(self):
         self.alarms.alarm_hum(self.latest_hum)
         self.alarms.alarm_temp(self.latest_hum)
 
 
 class SingleReadWidget(QWidget):
     """
-    SingleReadWidget that generates a single sample of the read in its own small
-    display
+    SingleReadWidget that generates a single sample of the read
+    in its own small display
     """
 
     def __init__(self, ps: pseudoSensor.PseudoSensor):
