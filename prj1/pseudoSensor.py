@@ -29,3 +29,11 @@ class PseudoSensor:
             self.t_range_index = 0
 
         return self.humVal, self.tempVal
+
+
+if __name__ == "__main__":
+    sensor = PseudoSensor()
+
+    for i in range(0, 10):
+        hum, temp = sensor.generate_values()
+        print(i, hum, temp)

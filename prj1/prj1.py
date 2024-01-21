@@ -1,3 +1,5 @@
+# ecea5347/prj1/prj1.py
+
 import sys
 from PySide6.QtWidgets import (
     QApplication,
@@ -18,11 +20,9 @@ from PySide6.QtCore import (
 )
 
 from PySide6.QtGui import QDoubleValidator
-
 from typing import Tuple
-import pseudoSensor
 
-# import sqlite3
+import pseudoSensor
 
 MIN_HUM = 0  # %hum
 MAX_HUM = 100  # %hum
