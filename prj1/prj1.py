@@ -25,7 +25,8 @@ from PySide6.QtWidgets import (
     QTableWidgetItem,
     QHeaderView,
     QLineEdit,
-    QGridLayout
+    QGridLayout,
+    QProgressBar
 )
 
 from PySide6.QtCore import (
@@ -198,11 +199,15 @@ class ReadingsTableWidget(QWidget):
         self.table = ReadingsTable(self.sensor, self.num_read)
         self.read_btn.clicked.connect(self.start_timer)
 
+        self.progress = QProgressBar(self)
+        self.progress.setValue(0)
         self.timer = QTimer()
         self.timer.timeout.connect(self.gen_humidity_temp_readings)
+        self.timer.timeout.connect(self.update_progress_bar)
         self.timer_count = 0
         self.layout = QVBoxLayout(self)
         self.layout.addWidget(self.read_btn)
+        self.layout.addWidget(self.progress)
         self.layout.addWidget(self.table)
 
     @Slot()
@@ -230,6 +235,10 @@ class ReadingsTableWidget(QWidget):
 
     def end_timer(self):
         self.timer.stop()
+
+    @Slot()
+    def update_progress_bar(self):
+        self.progress.setValue(float(self.timer_count/self.num_read)*100)
 
 
 class ReadingsTable(QTableWidget):
