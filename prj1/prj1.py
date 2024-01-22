@@ -138,10 +138,12 @@ class SingleReadWidget(QWidget):
         self.temp_layout.addWidget(self.temp_label)
         self.temp_layout.addWidget(QLabel("degC"))
 
+        self.temp_hum_layout = QHBoxLayout()
+        self.temp_hum_layout.addLayout(self.temp_layout)
+        self.temp_hum_layout.addLayout(self.humidity_layout)
         self.layout = QVBoxLayout(self)
         self.layout.addWidget(self.read_btn)
-        self.layout.addLayout(self.humidity_layout)
-        self.layout.addLayout(self.temp_layout)
+        self.layout.addLayout(self.temp_hum_layout)
 
     @Slot()
     def gen_humidity_temp_reading(self) -> None:
