@@ -1,4 +1,17 @@
-# ecea5347/prj1/prj1.py
+"""
+Written by Davit Khudaveryan for the ECEA5347 Course:
+Rapid Prototyping Interfaces for Embedded Systems
+
+This is a PyQT project to read measurement data from
+a 'pseudo' temperature/humidity sensor and display the information
+to the user in an easy to see interface
+
+The user can read a single measurement or request ten (10) to be
+read over the course of one (1) second intervals
+
+The user can calculate the minimum, maximum, and average of the
+latest ten (10) readings from a long term storage sqlite3 database
+"""
 
 import sys
 from PySide6.QtWidgets import (
@@ -73,11 +86,19 @@ class Prj1(QWidget):
 
     @Slot()
     def get_from_single_read(self):
+        """
+        get_from_single_read retrieves data generated from the
+        SingleReadWidget widget
+        """
         self.latest_temp, self.latest_hum, self.latest_dt =\
             self.single_read.get_reading()
 
     @Slot()
     def get_from_table(self):
+        """
+        get_from_table retrieves data generated from the
+        ReadingsTableWidget widget to store in the latest readings
+        """
         curr_row = self.readings_table.timer_count-1
         self.latest_hum = self.readings_table\
             .readings[curr_row][0]
@@ -88,8 +109,12 @@ class Prj1(QWidget):
 
     @Slot()
     def update_alarm(self):
+        """
+        update_alarm sets the alarm value to be checked against
+        to the latest values retrieves from the other data generating widgets
+        """
         self.alarms.alarm_hum(self.latest_hum)
-        self.alarms.alarm_temp(self.latest_hum)
+        self.alarms.alarm_temp(self.latest_temp)
 
     @Slot()
     def insert_into_db(self):
@@ -174,14 +199,19 @@ class ReadingsTableWidget(QWidget):
         self.read_btn.clicked.connect(self.start_timer)
 
         self.timer = QTimer()
-        self.timer.timeout.connect(self.get_humidity_temp_readings)
+        self.timer.timeout.connect(self.gen_humidity_temp_readings)
         self.timer_count = 0
         self.layout = QVBoxLayout(self)
         self.layout.addWidget(self.read_btn)
         self.layout.addWidget(self.table)
 
     @Slot()
-    def get_humidity_temp_readings(self):
+    def gen_humidity_temp_readings(self):
+        """
+        gen_humidity_temp_readings is triggered from the timer in this widge
+        to generate a reading value and update the data array and update
+        the table ui
+        """
         humidity, temp = self.sensor.generate_values()
         current_time = QDateTime.currentDateTime()
         formatted_time = current_time.toString('yyyy-MM-dd hh:mm:ss dddd')
@@ -205,6 +235,9 @@ class ReadingsTableWidget(QWidget):
 class ReadingsTable(QTableWidget):
     """
     ReadingsTable is the table that shows the latest readings in a QTable
+
+    This is a sub-widget of the parent 'ReadingsTableWidget' and is purely
+    the UI table. The parent widget holds the data
     """
 
     def __init__(self, ps: pseudoSensor.PseudoSensor, num_rows: int):
@@ -222,16 +255,16 @@ class ReadingsTable(QTableWidget):
         header.setSectionResizeMode(2, QHeaderView.Stretch)
 
     def update_table(self, row, temp, humidity, datetime):
+        """
+        update_table updates the table ui element at 'row' with the latest
+        sensor data
+        """
         item_humidity = QTableWidgetItem(f'{humidity:.2f}')
         item_temp = QTableWidgetItem(f'{temp:.2f}')
+        item_time = QTableWidgetItem(f'{datetime}')
 
         self.setItem(row, 0, item_humidity)
         self.setItem(row, 1, item_temp)
-
-        current_time = QDateTime.currentDateTime()
-        formatted_time = current_time.toString('yyyy-MM-dd hh:mm:ss dddd')
-        item_time = QTableWidgetItem(formatted_time)
-
         self.setItem(row, 2, item_time)
 
 
@@ -288,6 +321,13 @@ class AlarmWidget(QWidget):
 
     @Slot()
     def alarm_temp(self, temp_val):
+        """
+        alarm_temp checks the temperature value against the set alarm level
+        and will trigger the ui element to show the user that the
+        alarm level has been reached
+
+        The alarm can be cleared if needed
+        """
         if temp_val > self.temp_alarm and not self.temp_has_alarmed:
             self.clear_temp_alarm_btn.setEnabled(True)
             self.temp_has_alarmed = True
@@ -298,6 +338,13 @@ class AlarmWidget(QWidget):
 
     @Slot()
     def alarm_hum(self, hum_val):
+        """
+        alarm_hum checks the humidity value against the set alarm level
+        and will trigger the ui element to show the user that the
+        alarm level has been reached
+
+        The alarm can be cleared if needed
+        """
         if hum_val > self.hum_alarm and not self.hum_has_alarmed:
             self.clear_hum_alarm_btn.setEnabled(True)
             self.hum_has_alarmed = True
@@ -308,6 +355,10 @@ class AlarmWidget(QWidget):
 
     @Slot()
     def update_temp_alarm(self):
+        """
+        update_temp_alarm takes in the text field, clamps it, and updates the
+        widget's alarm value
+        """
         if self.temp_input.text() == '':
             return
         val = float(self.temp_input.text())
@@ -319,6 +370,10 @@ class AlarmWidget(QWidget):
 
     @Slot()
     def update_hum_alarm(self):
+        """
+        update_hum_alarm takes in the text field, clamps it, and updates the
+        widget's alarm value
+        """
         if self.hum_input.text() == '':
             return
         val = float(self.hum_input.text())
@@ -330,6 +385,10 @@ class AlarmWidget(QWidget):
 
     @Slot()
     def clear_temp_alarm(self):
+        """
+        clear_temp_alarm clears the alarm booleans of the widget's values
+        and updates the ui to show the user the alarm is cleared
+        """
         self.temp_alarm_box.setText("ALARM CLEARED")
         self.temp_alarm_box.setStyleSheet("""
         background-color: none;
@@ -339,6 +398,10 @@ class AlarmWidget(QWidget):
 
     @Slot()
     def clear_hum_alarm(self):
+        """
+        clear_hum_alarm clears the alarm booleans of the widget's values
+        and updates the ui to show the user the alarm is cleared
+        """
         self.hum_alarm_box.setText("ALARM CLEARED")
         self.hum_alarm_box.setStyleSheet("""
         background-color: none;
@@ -348,6 +411,15 @@ class AlarmWidget(QWidget):
 
 
 class CalcWidget(QWidget):
+    """
+    CalcWidget displays the min, max, and average of the latest (past 10 max)
+    readings and their respective minimums, maximums, and averages in a grid
+    ui configuration
+
+    The user must click on the button to read in the latest data and get the
+    results
+    """
+
     def __init__(self, db: PseudoSensorDb):
         super().__init__()
 
