@@ -61,10 +61,13 @@ class Prj1(QWidget):
         self.close_btn = QPushButton("Close Window")
         self.close_btn.clicked.connect(self.my_close)
 
+        self.calc_widget = CalcWidget(self.db)
+
         self.layout = QVBoxLayout(self)
         self.layout.addWidget(self.single_read)
         self.layout.addWidget(self.alarms)
         self.layout.addWidget(self.readings_table)
+        self.layout.addWidget(self.calc_widget)
         self.layout.addWidget(self.close_btn)
         self.resize(400, 800)
 
@@ -340,6 +343,76 @@ class AlarmWidget(QWidget):
         """)
         self.hum_has_alarmed = False
         self.clear_hum_alarm_btn.setEnabled(False)
+
+
+class CalcWidget(QWidget):
+    def __init__(self, db: PseudoSensorDb):
+        super().__init__()
+
+        self.db = db
+        self.data = []
+        self.calcs = []
+        self.calc_btn = QPushButton("Calculate Avg/Min/Max of Latest Ten")
+        self.calc_btn.clicked.connect(self.get_latest_data_db)
+        self.calc_btn.clicked.connect(self.calculate)
+        self.calc_btn.clicked.connect(self.update)
+        self.grid = QGridLayout()
+        self.grid.addWidget(QLabel("Min"), 0, 1, 1, 1)
+        self.grid.addWidget(QLabel("Max"), 0, 2, 1, 1)
+        self.grid.addWidget(QLabel("Avg"), 0, 3, 1, 1)
+        self.grid.addWidget(QLabel("Temperature (degC)"), 1, 0, 1, 1)
+        self.grid.addWidget(QLabel("Humidity (%)"), 2, 0, 1, 1)
+        self.min_temp_label = QLabel("")
+        self.max_temp_label = QLabel("")
+        self.avg_temp_label = QLabel("")
+        self.min_hum_label = QLabel("")
+        self.max_hum_label = QLabel("")
+        self.avg_hum_label = QLabel("")
+        self.grid.addWidget(self.min_temp_label, 1, 1, 1, 1)
+        self.grid.addWidget(self.max_temp_label, 1, 2, 1, 1)
+        self.grid.addWidget(self.avg_temp_label, 1, 3, 1, 1)
+        self.grid.addWidget(self.min_hum_label, 2, 1, 1, 1)
+        self.grid.addWidget(self.max_hum_label, 2, 2, 1, 1)
+        self.grid.addWidget(self.avg_hum_label, 2, 3, 1, 1)
+        self.layout = QVBoxLayout(self)
+        self.layout.addWidget(self.calc_btn)
+        self.layout.addLayout(self.grid)
+
+    @Slot()
+    def get_latest_data_db(self):
+        self.data = self.db.get_latest_10()
+
+    @Slot()
+    def calculate(self):
+        if self.data is None or self.data == []:
+            # (min, max, avg) of temp, humidity
+            return [(0, 0, 0), (0, 0, 0)]
+
+        temps = [row[2] for row in self.data]
+        hums = [row[1] for row in self.data]
+
+        min_temp = min(temps)
+        min_hum = min(hums)
+        max_temp = max(temps)
+        max_hum = max(hums)
+        avg_temp = sum(temps)/len(temps)
+        avg_hum = sum(hums)/len(hums)
+
+        self.calcs = [(min_temp, max_temp, avg_temp),
+                      (min_hum, max_hum, avg_hum)]
+
+    @Slot()
+    def update(self):
+        if self.calcs == []:
+            return
+
+        # (min, max, avg) of temp, humidity
+        self.min_temp_label.setText(f'{self.calcs[0][0]:.2f}')
+        self.max_temp_label.setText(f'{self.calcs[0][1]:.2f}')
+        self.avg_temp_label.setText(f'{self.calcs[0][2]:.2f}')
+        self.min_hum_label.setText(f'{self.calcs[1][0]:.2f}')
+        self.max_hum_label.setText(f'{self.calcs[1][1]:.2f}')
+        self.avg_hum_label.setText(f'{self.calcs[1][2]:.2f}')
 
 
 def main():
