@@ -78,12 +78,12 @@ class Prj1(QWidget):
         self.calc_widget = CalcWidget(self.db)
 
         self.layout = QVBoxLayout(self)
-        self.layout.addWidget(self.single_read)
         self.layout.addWidget(self.alarms)
+        self.layout.addWidget(self.single_read)
         self.layout.addWidget(self.readings_table)
         self.layout.addWidget(self.calc_widget)
         self.layout.addWidget(self.close_btn)
-        self.resize(400, 800)
+        self.resize(500, 800)
 
     @Slot()
     def get_from_single_read(self):
@@ -257,7 +257,7 @@ class ReadingsTable(QTableWidget):
         self.setRowCount(self.num_rows)
         self.setColumnCount(3)
         self.setHorizontalHeaderLabels(
-            ["Humidity", "Temperature", "Time"])
+            ["Humidity (%)", "Temperature (degC)", "Datetime"])
         header = self.horizontalHeader()
         header.setSectionResizeMode(0, QHeaderView.ResizeToContents)
         header.setSectionResizeMode(1, QHeaderView.ResizeToContents)
