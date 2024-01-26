@@ -21,13 +21,21 @@
     </div>
     <div class="alarm-station">
       <form action="" id="alarm-form">
-        <label for="temp-alarm">Temperature Alarm Level (degC): </label>
-        <input type="number" value="60" min="-20" step=".01" max="120" name="temp-alarm" id="temp-alarm" />
-        <label for="hum-alarm">Humidity Alarm Level (%): </label>
-        <input type="number" value="25" min="0" step=".01" max="100" name="hum-alarm" id="hum-alarm" />
+        <div class="temp-alarm-container">
+          <label for="temp-alarm">Temperature Alarm Level (degC): </label>
+          <input type="number" value="60" min="-20" step=".01" max="120" name="temp-alarm" id="temp-alarm" />
+        </div>
+        <div class="hum-alarm-container">
+          <label for="hum-alarm">Humidity Alarm Level (%): </label>
+          <input type="number" value="25" min="0" step=".01" max="100" name="hum-alarm" id="hum-alarm" />
+        </div>
 
-        <input class="sensor-ui" disabled type="submit" value="Update Alarm Levels" />
+        <input class="sensor-ui" type="submit" value="Update Alarm Levels" />
       </form>
+      <div class="alarm-notif">
+        <p id="temp-notif">No Alarm Yet</p>
+        <p id="hum-notif">No Alarm Yet</p>
+      </div>
     </div>
   </section>
   <main>
@@ -107,15 +115,15 @@
       </table>
     </div>
     <div class="calc-container">
-      <button class="sensor-btn" disabled onclick="calc_stats()">
+      <button class="sensor-btn" disabled onclick="get_stats()">
         Calculate Data Statistics
       </button>
       <table>
         <tr>
           <th></th>
           <th>Min</th>
-          <th>Avg</th>
           <th>Max</th>
+          <th>Avg</th>
         </tr>
         <tr class="calc-row">
           <th>Temperature (degC)</th>
@@ -130,6 +138,11 @@
           <td></td>
         </tr>
       </table>
+    </div>
+    <div>
+      <button id="close" onclick="close_app()">
+        Close App
+      </button>
     </div>
   </main>
 </body>

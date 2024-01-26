@@ -7,6 +7,10 @@ let interval_multi_reads = 0;
 let ten_reads = new Array(10);
 let alarm_temp = 60;
 let alarm_hum = 25;
+let alarm_temp_crossed = false;
+let alarm_hum_crossed = false;
+let temp_stats = new Array(3);
+let hum_stats = new Array(3);
 function open_websocket() {
   const status_msg = document.querySelector(".ws-status-text");
   const ws_btn = document.querySelector("#ws-connect-btn");
@@ -29,7 +33,6 @@ function open_websocket() {
     connected = true;
     enable_sensor_ui(true);
     ws_btn.innerHTML = "Disconnect Websocket";
-    request_data();
   });
 
   ws.addEventListener("message", (event) => {
@@ -38,9 +41,26 @@ function open_websocket() {
     switch(msg_type) {
       case "data":
         [latest_hum, latest_temp, latest_dt] = parse_humtemp_data(msg_val);
+        update_single_read_ui();
+        update_alarms();
+        break;
       case "datam":
         [latest_hum, latest_temp, latest_dt] = parse_humtemp_data(msg_val);
         ten_reads[counter] = [latest_hum, latest_temp, latest_dt];
+        update_table_ui(counter);
+        update_counter();
+        update_alarms();
+        break;
+      case "datacalc":
+        let res = parse_calc_data(msg_val);
+        temp_stats[0] = res[0][0];       
+        temp_stats[1] = res[0][1];       
+        temp_stats[2] = res[0][2];       
+        hum_stats[0] = res[1][0];       
+        hum_stats[1] = res[1][1];       
+        hum_stats[2] = res[1][2];       
+        update_stats_table();
+        break;
     }    
   });
 
@@ -82,6 +102,14 @@ function parse_humtemp_data(data_value){
   return [hum, temp, dt];  
 }
 
+function parse_calc_data(data_value){
+  let results = new Array(2);
+  let values = data_value.split(",").map((el) => parseFloat(el));
+  results[0] = values.slice(0,3);
+  results[1] = values.slice(3);
+  return results;
+}
+
 /**
 * Enables all the buttons that can request data. This needs to happen after
 * the websocket connection is successfully opened. Otherwise a websocket error
@@ -98,29 +126,26 @@ function enable_sensor_ui(enable){
 
 function get_single_read(){
   request_data(false);
+}
+
+function update_single_read_ui(){
   const hum_p = document.querySelector("#single-hum");
   const temp_p = document.querySelector("#single-temp");
 
   hum_p.innerHTML = latest_hum.toFixed(2);
   temp_p.innerHTML = latest_temp.toFixed(2);
+  
 }
 
 function get_ten_reads(){
   request_data(true);
-  // console.log("temp: ", latest_temp, " hum: ", latest_hum);
-  update_table(counter);
-  counter++;
-  if(counter >= 10) {
-    counter = 0;
-    clearInterval(interval_multi_reads);
-  }  
-  console.log("counter:", counter);
+  console.log(ten_reads);
 }
 function start_multi_read(){
   interval_multi_reads = setInterval(() =>  {get_ten_reads()}, 1000);
 }
 
-function update_table(row){
+function update_table_ui(row){
   const rows = document.querySelectorAll(".data-row");
 
   const td = rows[row].children;
@@ -131,15 +156,68 @@ function update_table(row){
   
 }
 
+function update_counter(){
+  counter++;
+  if(counter == 10) {
+    counter = 0;
+    clearInterval(interval_multi_reads);
+  }  
+}
+
 alarm_form = document.getElementById("alarm-form");
 
 alarm_form.addEventListener("submit", (event) => {
   event.preventDefault();
-  if(!connected) {
-    return;
-  }
-  alarm_temp_value = document.getElementById("temp-alarm").value;
-  alarm_hum_value = document.getElementById("hum-alarm").value;
-  msg = "alarm ".concat(alarm_temp_value,",",alarm_hum_value);
-  ws.send(msg);
+  alarm_temp = document.getElementById("temp-alarm").value;
+  alarm_hum = document.getElementById("hum-alarm").value;
 });
+
+function check_temp_alarm(){
+  return latest_temp > alarm_temp;
+}
+
+function check_hum_alarm(){
+  return latest_hum > alarm_hum;
+}
+
+function update_alarms(){
+  const alarm_temp_notif = document.querySelector("#temp-notif");
+  const alarm_hum_notif = document.querySelector("#hum-notif")
+
+  if(check_temp_alarm() && !alarm_temp_crossed){
+    alarm_temp_crossed = true;
+    alarm_temp_notif.innerHTML="ALARM AT ".concat(latest_temp.toFixed(2),"degC");
+  }
+  if(check_hum_alarm() && !alarm_hum_crossed){
+    alarm_hum_crossed = true;
+    alarm_hum_notif.innerHTML="ALARM AT ".concat(latest_hum.toFixed(2),"%");
+  }
+}
+
+function get_stats(){
+  if(!connected){
+    return
+  }
+  ws.send("calcstats");
+}
+function update_stats_table(){
+  const rows = document.querySelectorAll(".calc-row");
+
+  let temp_row = rows[0].children;
+  let hum_row = rows[1].children;
+
+  temp_row[1].innerHTML = temp_stats[0].toFixed(2);
+  temp_row[2].innerHTML = temp_stats[1].toFixed(2);
+  temp_row[3].innerHTML  = temp_stats[2].toFixed(2);
+  hum_row[1].innerHTML  = hum_stats[0].toFixed(2);
+  hum_row[2].innerHTML  = hum_stats[1].toFixed(2);
+  hum_row[3].innerHTML  = hum_stats[2].toFixed(2);
+}
+
+function close_app(){
+  if(connected){
+    ws.send("shutdown");
+  }
+
+  close();
+}

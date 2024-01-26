@@ -27,10 +27,12 @@ class WSHandler(tornado.websocket.WebSocketHandler):
             case "datam req":
                 self.send_humtemp_val(True)
             case "shutdown":
+                tornado.ioloop.IOLoop.instance().stop()
                 tornado.ioloop.IOLoop.instance().close()
             case "calcstats":
                 self.send_calculate_stats()
             case _:
+                print(message)
                 self.write_message("Unrecognized message")
 
     def on_close(self):
