@@ -1,0 +1,8 @@
+body {
+  font-family: "Segoe UI",
+    san-serif;
+}
+
+.value-container p {
+  display: inline;
+}

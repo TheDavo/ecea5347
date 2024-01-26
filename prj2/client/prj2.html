@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en-us">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ECEA5347 Sensor UI</title>
+  <link rel="stylesheet" href="styles.css" type="text/css">
+  <script defer src="prj2script.js" type="text/javascript"></script>
+</head>
+
+<body>
+  <section class="settings-container">
+    <div class="ws-station">
+      <h1>Websocket Station</h1>
+      <button id="ws-connect-btn" onclick="open_websocket()">Connect to Websocket</button>
+      <div class="ws-status-container">
+        <p class="ws-status-icon"></p>
+        <p class="ws-status-text">Not Connected</p>
+      </div>
+    </div>
+    <div class="alarm-station">
+      <form action="" id="alarm-form">
+        <label for="temp-alarm">Temperature Alarm Level (degC): </label>
+        <input type="number" value="60" min="-20" step=".01" max="120" name="temp-alarm" id="temp-alarm" />
+        <label for="hum-alarm">Humidity Alarm Level (%): </label>
+        <input type="number" value="25" min="0" step=".01" max="100" name="hum-alarm" id="hum-alarm" />
+
+        <input class="sensor-ui" disabled type="submit" value="Update Alarm Levels" />
+      </form>
+    </div>
+  </section>
+  <main>
+    <div class="single-read-container">
+      <button class="sensor-btn" disabled onclick="get_single_read()">
+        Get Hum/Temp Data
+      </button>
+      <div class="value-container">
+        <p id="single-hum">--</p>
+        <p class="unit hum-unit">%</p>
+      </div>
+      <div class="value-container">
+        <p id="single-temp">--</p>
+        <p class="unit temp-unit">degC</p>
+      </div>
+    </div>
+    <div class="multi-read-container">
+      <button class="sensor-btn" disabled onclick="start_multi_read()">
+        Start Ten Reads
+      </button>
+      <table>
+        <tr>
+          <th>Humidity (%)</th>
+          <th>Temperature (degC)</th>
+          <th>Datetime</th>
+        </tr>
+        <tr class="data-row">
+          <td></td>
+          <td></td>
+          <td></td>
+        </tr>
+        <tr class="data-row">
+          <td></td>
+          <td></td>
+          <td></td>
+        </tr>
+        <tr class="data-row">
+          <td></td>
+          <td></td>
+          <td></td>
+        </tr>
+        <tr class="data-row">
+          <td></td>
+          <td></td>
+          <td></td>
+        </tr>
+        <tr class="data-row">
+          <td></td>
+          <td></td>
+          <td></td>
+        </tr>
+        <tr class="data-row">
+          <td></td>
+          <td></td>
+          <td></td>
+        </tr>
+        <tr class="data-row">
+          <td></td>
+          <td></td>
+          <td></td>
+        </tr>
+        <tr class="data-row">
+          <td></td>
+          <td></td>
+          <td></td>
+        </tr>
+        <tr class="data-row">
+          <td></td>
+          <td></td>
+          <td></td>
+        </tr>
+        <tr class="data-row">
+          <td></td>
+          <td></td>
+          <td></td>
+        </tr>
+      </table>
+    </div>
+    <div class="calc-container">
+      <button class="sensor-btn" disabled onclick="calc_stats()">
+        Calculate Data Statistics
+      </button>
+      <table>
+        <tr>
+          <th></th>
+          <th>Min</th>
+          <th>Avg</th>
+          <th>Max</th>
+        </tr>
+        <tr class="calc-row">
+          <th>Temperature (degC)</th>
+          <td></td>
+          <td></td>
+          <td></td>
+        </tr>
+        <tr class="calc-row">
+          <th>Humidity(%)</th>
+          <td></td>
+          <td></td>
+          <td></td>
+        </tr>
+      </table>
+    </div>
+  </main>
+</body>
+
+</html>
