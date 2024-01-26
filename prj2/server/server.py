@@ -28,7 +28,6 @@ class WSHandler(tornado.websocket.WebSocketHandler):
                 self.send_humtemp_val(True)
             case "shutdown":
                 tornado.ioloop.IOLoop.instance().stop()
-                tornado.ioloop.IOLoop.instance().close()
             case "calcstats":
                 self.send_calculate_stats()
             case _:
