@@ -6,3 +6,49 @@ body {
 .value-container p {
   display: inline;
 }
+
+main {
+  display: flex;
+  flex-direction: row;
+  padding: 1rem;
+}
+
+.sensor-container {
+  display: flex;
+  flex-direction: column;
+  padding-left: 1rem;
+}
+
+h1 {
+  border-bottom: 3px solid black;
+  font-size: 1.5rem;
+}
+
+tr {
+  padding: 3px;
+  border: 1px solid black;
+}
+
+.calc-row th {
+  text-align: left;
+  padding-left: 0;
+}
+
+th {
+  padding: 0.5rem;
+}
+
+button {
+  width: 100%;
+}
+
+#alarm-form {
+  display: flex;
+  flex-direction: column;
+}
+
+.temp-alarm-container,
+.hum-alarm-container {
+  display: flex;
+  justify-content: space-between;
+}

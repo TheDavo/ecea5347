@@ -10,139 +10,145 @@
 </head>
 
 <body>
-  <section class="settings-container">
-    <div class="ws-station">
-      <h1>Websocket Station</h1>
-      <button id="ws-connect-btn" onclick="open_websocket()">Connect to Websocket</button>
-      <div class="ws-status-container">
-        <p class="ws-status-icon"></p>
-        <p class="ws-status-text">Not Connected</p>
-      </div>
-    </div>
-    <div class="alarm-station">
-      <form action="" id="alarm-form">
-        <div class="temp-alarm-container">
-          <label for="temp-alarm">Temperature Alarm Level (degC): </label>
-          <input type="number" value="60" min="-20" step=".01" max="120" name="temp-alarm" id="temp-alarm" />
-        </div>
-        <div class="hum-alarm-container">
-          <label for="hum-alarm">Humidity Alarm Level (%): </label>
-          <input type="number" value="25" min="0" step=".01" max="100" name="hum-alarm" id="hum-alarm" />
-        </div>
-
-        <input class="sensor-ui" type="submit" value="Update Alarm Levels" />
-      </form>
-      <div class="alarm-notif">
-        <p id="temp-notif">No Alarm Yet</p>
-        <p id="hum-notif">No Alarm Yet</p>
-      </div>
-    </div>
-  </section>
   <main>
-    <div class="single-read-container">
-      <button class="sensor-btn" disabled onclick="get_single_read()">
-        Get Hum/Temp Data
-      </button>
-      <div class="value-container">
-        <p id="single-hum">--</p>
-        <p class="unit hum-unit">%</p>
+    <section class="settings-container">
+      <div class="ws-station">
+        <h1>Websocket Station</h1>
+        <button id="ws-connect-btn" onclick="open_websocket()">Connect to Websocket</button>
+        <div class="ws-status-container">
+          <p class="ws-status-icon"></p>
+          <p class="ws-status-text">Not Connected</p>
+        </div>
       </div>
-      <div class="value-container">
-        <p id="single-temp">--</p>
-        <p class="unit temp-unit">degC</p>
+      <div class="alarm-station">
+        <h1>Alarm Settings</h1>
+        <form action="" id="alarm-form">
+          <div class="temp-alarm-container">
+            <label for="temp-alarm">Temperature Alarm Level (degC): </label>
+            <input type="number" value="60" min="-20" step=".01" max="120" name="temp-alarm" id="temp-alarm" />
+          </div>
+          <div class="hum-alarm-container">
+            <label for="hum-alarm">Humidity Alarm Level (%): </label>
+            <input type="number" value="25" min="0" step=".01" max="100" name="hum-alarm" id="hum-alarm" />
+          </div>
+
+          <input class="sensor-ui" type="submit" value="Update Alarm Levels" />
+        </form>
+        <div class="alarm-notif">
+          <p id="temp-notif">No Alarm Yet</p>
+          <p id="hum-notif">No Alarm Yet</p>
+        </div>
       </div>
-    </div>
-    <div class="multi-read-container">
-      <button class="sensor-btn" disabled onclick="start_multi_read()">
-        Start Ten Reads
-      </button>
-      <table>
-        <tr>
-          <th>Humidity (%)</th>
-          <th>Temperature (degC)</th>
-          <th>Datetime</th>
-        </tr>
-        <tr class="data-row">
-          <td></td>
-          <td></td>
-          <td></td>
-        </tr>
-        <tr class="data-row">
-          <td></td>
-          <td></td>
-          <td></td>
-        </tr>
-        <tr class="data-row">
-          <td></td>
-          <td></td>
-          <td></td>
-        </tr>
-        <tr class="data-row">
-          <td></td>
-          <td></td>
-          <td></td>
-        </tr>
-        <tr class="data-row">
-          <td></td>
-          <td></td>
-          <td></td>
-        </tr>
-        <tr class="data-row">
-          <td></td>
-          <td></td>
-          <td></td>
-        </tr>
-        <tr class="data-row">
-          <td></td>
-          <td></td>
-          <td></td>
-        </tr>
-        <tr class="data-row">
-          <td></td>
-          <td></td>
-          <td></td>
-        </tr>
-        <tr class="data-row">
-          <td></td>
-          <td></td>
-          <td></td>
-        </tr>
-        <tr class="data-row">
-          <td></td>
-          <td></td>
-          <td></td>
-        </tr>
-      </table>
-    </div>
-    <div class="calc-container">
-      <button class="sensor-btn" disabled onclick="get_stats()">
-        Calculate Data Statistics
-      </button>
-      <table>
-        <tr>
-          <th></th>
-          <th>Min</th>
-          <th>Max</th>
-          <th>Avg</th>
-        </tr>
-        <tr class="calc-row">
-          <th>Temperature (degC)</th>
-          <td></td>
-          <td></td>
-          <td></td>
-        </tr>
-        <tr class="calc-row">
-          <th>Humidity(%)</th>
-          <td></td>
-          <td></td>
-          <td></td>
-        </tr>
-      </table>
-    </div>
-    <div>
-      <button id="close" onclick="close_app()">
-        Close App
-      </button>
+    </section>
+    <div class="sensor-container">
+      <div class="single-read-container">
+        <h1>Single Read</h1>
+        <button class="sensor-btn" disabled onclick="get_single_read()">
+          Get Hum/Temp Data
+        </button>
+        <div class="value-container">
+          <p id="single-hum">--</p>
+          <p class="unit hum-unit">%</p>
+        </div>
+        <div class="value-container">
+          <p id="single-temp">--</p>
+          <p class="unit temp-unit">degC</p>
+        </div>
+      </div>
+      <div class="multi-read-container">
+        <h1>Multi-read</h1>
+        <button class="sensor-btn" disabled onclick="start_multi_read()">
+          Start Ten Reads
+        </button>
+        <table>
+          <tr>
+            <th>Humidity (%)</th>
+            <th>Temperature (degC)</th>
+            <th>Datetime</th>
+          </tr>
+          <tr class="data-row">
+            <td></td>
+            <td></td>
+            <td></td>
+          </tr>
+          <tr class="data-row">
+            <td></td>
+            <td></td>
+            <td></td>
+          </tr>
+          <tr class="data-row">
+            <td></td>
+            <td></td>
+            <td></td>
+          </tr>
+          <tr class="data-row">
+            <td></td>
+            <td></td>
+            <td></td>
+          </tr>
+          <tr class="data-row">
+            <td></td>
+            <td></td>
+            <td></td>
+          </tr>
+          <tr class="data-row">
+            <td></td>
+            <td></td>
+            <td></td>
+          </tr>
+          <tr class="data-row">
+            <td></td>
+            <td></td>
+            <td></td>
+          </tr>
+          <tr class="data-row">
+            <td></td>
+            <td></td>
+            <td></td>
+          </tr>
+          <tr class="data-row">
+            <td></td>
+            <td></td>
+            <td></td>
+          </tr>
+          <tr class="data-row">
+            <td></td>
+            <td></td>
+            <td></td>
+          </tr>
+        </table>
+      </div>
+      <div class="calc-container">
+        <h1>Statistics</h1>
+        <button class="sensor-btn" disabled onclick="get_stats()">
+          Calculate Data Statistics
+        </button>
+        <table>
+          <tr>
+            <th></th>
+            <th>Min</th>
+            <th>Max</th>
+            <th>Avg</th>
+          </tr>
+          <tr class="calc-row">
+            <th>Temperature (degC)</th>
+            <td></td>
+            <td></td>
+            <td></td>
+          </tr>
+          <tr class="calc-row">
+            <th>Humidity(%)</th>
+            <td></td>
+            <td></td>
+            <td></td>
+          </tr>
+        </table>
+      </div>
+      <div>
+        <button id="close" onclick="close_app()">
+          Close App
+        </button>
+      </div>
     </div>
   </main>
 </body>
