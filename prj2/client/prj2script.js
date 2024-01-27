@@ -76,6 +76,8 @@ function open_websocket() {
 /**
 * Sends a websocket data request to the server to receive
 * humidity and temperature data
+* @param {boolean} for_multiple - determines if the data sent is meant for the
+* single read or multi-read ui elements
 */
 function request_data(for_multiple){
   if(!for_multiple){
@@ -102,6 +104,15 @@ function parse_humtemp_data(data_value){
   return [hum, temp, dt];  
 }
 
+/**
+* Parses the data values of a data message into the humidity and temperature
+* values from the sensor
+* 
+* Returns a two-element array of arrays, first index for the temperature values
+* and the second for the humidity values 
+* @param {string} data_value - humidity,temperature string value from ws
+* @returns {Array} temp_hum - [[min,max,avg],[min,max,avg]]
+*/
 function parse_calc_data(data_value){
   let results = new Array(2);
   let values = data_value.split(",").map((el) => parseFloat(el));
@@ -134,7 +145,6 @@ function update_single_read_ui(){
 
   hum_p.innerHTML = latest_hum.toFixed(2);
   temp_p.innerHTML = latest_temp.toFixed(2);
-  
 }
 
 function get_ten_reads(){
@@ -180,6 +190,10 @@ function check_hum_alarm(){
   return latest_hum > alarm_hum;
 }
 
+/**
+* Updates the alarm UI elements when an sensor data has crossed the 
+* threshold
+*/
 function update_alarms(){
   const alarm_temp_notif = document.querySelector("#temp-notif");
   const alarm_hum_notif = document.querySelector("#hum-notif")
@@ -200,6 +214,10 @@ function get_stats(){
   }
   ws.send("calcstats");
 }
+
+/**
+* Updates the stats table UI when the calc stats button is pressed
+*/
 function update_stats_table(){
   const rows = document.querySelectorAll(".calc-row");
 
@@ -208,7 +226,7 @@ function update_stats_table(){
 
   temp_row[1].innerHTML = temp_stats[0].toFixed(2);
   temp_row[2].innerHTML = temp_stats[1].toFixed(2);
-  temp_row[3].innerHTML  = temp_stats[2].toFixed(2);
+  temp_row[3].innerHTML = temp_stats[2].toFixed(2);
   hum_row[1].innerHTML  = hum_stats[0].toFixed(2);
   hum_row[2].innerHTML  = hum_stats[1].toFixed(2);
   hum_row[3].innerHTML  = hum_stats[2].toFixed(2);
