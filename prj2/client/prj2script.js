@@ -70,7 +70,23 @@ function open_websocket() {
       status_msg.innerHTML = "Error on connection.";
     }
     status_msg.innerHTML = "Error!";
+    enable_sensor_ui(false);
   });
+
+  ws.addEventListener("close", (event) => {
+    console.log("Closing ", event.data);
+    connected = false;
+    status_msg.innerHTML = "Disconnected/Closed";
+    enable_sensor_ui(false);
+  });
+}
+
+/**
+* Simple check to make sure we cannot send messages is the 
+* socket is not ready to send
+*/
+function is_ws_open(ws) {
+  return ws.readyState === ws.OPEN;
 }
 
 /**
@@ -80,6 +96,7 @@ function open_websocket() {
 * single read or multi-read ui elements
 */
 function request_data(for_multiple){
+  if(!is_ws_open(ws)) return;
   if(!for_multiple){
     ws.send("data req");
   } else {
@@ -163,7 +180,6 @@ function update_table_ui(row){
   td[0].innerHTML=ten_reads[row][0].toFixed(2);
   td[1].innerHTML=ten_reads[row][1].toFixed(2);
   td[2].innerHTML=ten_reads[row][2];
-  
 }
 
 function update_counter(){
@@ -209,8 +225,8 @@ function update_alarms(){
 }
 
 function get_stats(){
-  if(!connected){
-    return
+  if(!connected || !is_ws_open(ws)){
+    return;
   }
   ws.send("calcstats");
 }
@@ -233,7 +249,7 @@ function update_stats_table(){
 }
 
 function close_app(){
-  if(connected){
+  if(connected && is_ws_open(ws)){
     ws.send("shutdown");
   }
 
