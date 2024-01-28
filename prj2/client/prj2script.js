@@ -11,6 +11,12 @@ let alarm_temp_crossed = false;
 let alarm_hum_crossed = false;
 let temp_stats = new Array(3);
 let hum_stats = new Array(3);
+
+const MIN_TEMP = -20;
+const MAX_TEMP = 120;
+const MIN_HUM = 0;
+const MAX_HUM = 100;
+
 function open_websocket() {
   const status_msg = document.querySelector(".ws-status-text");
   const ws_btn = document.querySelector("#ws-connect-btn");
@@ -195,7 +201,9 @@ alarm_form = document.getElementById("alarm-form");
 alarm_form.addEventListener("submit", (event) => {
   event.preventDefault();
   alarm_temp = document.getElementById("temp-alarm").value;
+  alarm_temp = Math.max(MIN_TEMP, Math.min(alarm_temp, MAX_TEMP));
   alarm_hum = document.getElementById("hum-alarm").value;
+  alarm_hum = Math.max(MIN_HUM, Math.min(alarm_hum, MAX_HUM));
 });
 
 function check_temp_alarm(){
