@@ -38,9 +38,6 @@ th {
   padding: 0.5rem;
 }
 
-button {
-  width: 100%;
-}
 
 #alarm-form {
   display: flex;
@@ -51,4 +48,10 @@ button {
 .hum-alarm-container {
   display: flex;
   justify-content: space-between;
+  padding: 5px;
+}
+
+input[type=number] {
+  margin-left: 1rem;
+
 }
