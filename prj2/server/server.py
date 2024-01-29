@@ -3,15 +3,14 @@ import tornado.websocket
 import tornado.ioloop
 import tornado.web
 import tornado.httpserver
-# import socket
-import pseudoSensor
+from . import pseudoSensor
 import datetime
-from db import PseudoSensorDb
+from . import db
 
 
 class WSHandler(tornado.websocket.WebSocketHandler):
     sensor = pseudoSensor.PseudoSensor()
-    sensor_db = PseudoSensorDb("prj2_db.db")
+    sensor_db = db.PseudoSensorDb("prj2_db.db")
 
     def open(self):
         print("new connection")
@@ -69,10 +68,14 @@ class WSHandler(tornado.websocket.WebSocketHandler):
                            avg_temp},{min_hum},{max_hum},{avg_hum}")
 
 
-if __name__ == "__main__":
+def main():
     application = tornado.web.Application([(r'/ws/', WSHandler)])
     http_server = tornado.httpserver.HTTPServer(application)
     http_server.listen(8888, address="localhost")
     # my_ip = socket.gethostbyname(socket.gethostname())
     print("Starting a server on localhost:8888")
     tornado.ioloop.IOLoop.instance().start()
+
+
+if __name__ == "__main__":
+    main()
